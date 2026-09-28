@@ -46,9 +46,10 @@
           <strong>Contents</strong>
           <a href="#abstract">Abstract</a>
           <a href="#method">Method</a>
-          <a href="#environments">Environments</a>
+          <a href="#environments">Tasks</a>
           <a href="#results">Results</a>
-          <a href="#analysis">Analysis</a>
+          <a href="#traps">Traps</a>
+          <a href="#rl">RL</a>
           <a href="#explorer">Explorer</a>
           <a href="#bibtex">BibTeX</a>
         </aside>
@@ -184,6 +185,11 @@
           <img src="assets/images/fig2_environments_rollout.webp" width="2400" height="1239" loading="lazy" alt="Training and test states for Maze2D, Sokoban, Pacman and PushT, and an imagined Pacman rollout.">
           <figcaption>(a) Training and test states: Maze2D mazes grow, Sokoban goes from two to four boxes, Pacman moves to 12×12 grids with more food, and PushT starts farther from the center. (b) Agima interleaves actions and predicted states, then executes the actions.</figcaption>
         </figure>
+        <div class="k-explainer">
+          <h3>Action chunks K</h3>
+          <p>K is how many actions Agima commits before it sees the real board again. In between, it plans from its own imagined frames. K = 1 is fully reactive; K = ∞ imagines the whole episode from a single frame.</p>
+          <div id="k-chunks"></div>
+        </div>
       </div>
     </section>
 
@@ -204,14 +210,14 @@
               <article><span>+36</span><strong>pp</strong><p>Pacman over the action-only model</p></article>
             </div>
           </section>
-          <section class="result-group" aria-labelledby="futures-heading">
+          <section class="result-group" aria-labelledby="traps-heading">
             <div class="result-group-heading">
-              <h3 id="futures-heading">Reasoning over alternative futures</h3>
-              <p>Same training episodes, different imagination traces. One real observation, then pure imagination (K = ∞).</p>
+              <h3 id="traps-heading">Planning traps</h3>
+              <p>Test sets where a locally reasonable move fails several steps later. One real frame, then pure imagination (K = ∞).</p>
             </div>
             <div class="metrics">
               <article><span>+38</span><strong>pp</strong><p>Two-box Sokoban Deadlock with forward thinking</p></article>
-              <article><span>+32</span><strong>pp</strong><p>Pacman route-order traps (G8/F4) with forward thinking</p></article>
+              <article><span>+32</span><strong>pp</strong><p>Pacman route-order trap (G8/F4) with forward thinking</p></article>
             </div>
           </section>
         </div>
@@ -220,63 +226,101 @@
           <div id="k-results"></div>
         </div>
         <div class="results-block">
-          <div id="reasoning-results"></div>
+          <div class="chart-controls"><h3>Agima reads its own imagined frames</h3></div>
+          <p class="chart-note">Same K = 5 model; only the imagined frames in its context are swapped. Blank or stale frames drop success to at most 1%. Ground-truth frames barely help in Sokoban (43% vs 40%) but lift Pacman to 81%.</p>
+          <div class="ablation-figure">
+            <div id="ablation"></div>
+            <div class="chart-legend">
+              <span><i class="sw sw-ours"></i>Own predictions</span>
+              <span><i class="sw sw-oracle"></i>Ground-truth frames</span>
+              <span><i class="sw sw-noimg"></i>No Imagine</span>
+              <span><i class="sw sw-other"></i>Blank / stale</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="section analysis-section" id="analysis">
+    <section class="section" id="traps">
       <div class="wide">
         <div class="section-heading">
-          <p class="eyebrow">Analysis</p>
-          <h2>What imagination changes</h2>
+          <p class="eyebrow">Evaluation</p>
+          <h2>Planning Traps</h2>
+          <p>Three test sets where a move that looks fine leads to failure several steps later. Everything runs at K = ∞.</p>
+        </div>
+        <div class="trap-grid">
+          <article class="trap-card">
+            <b>Sokoban</b>
+            <h3>Deadlock</h3>
+            <div class="trap-pair">
+              <figure><img src="assets/images/traps/deadlock_start.webp" width="256" height="256" loading="lazy" alt="Three-box Sokoban puzzle at the start."><figcaption>Start</figcaption></figure>
+              <span class="trap-arrow" aria-hidden="true">→</span>
+              <figure><img src="assets/images/traps/deadlock_after_push.webp" width="256" height="256" loading="lazy" alt="After one tempting push, a box is stuck in a corner."><figcaption>One tempting push</figcaption></figure>
+            </div>
+            <p>A legal push leaves a box where it can never reach a goal, so the puzzle is already lost. 2, 3 and 4 boxes, 100 puzzles each.</p>
+          </article>
+          <article class="trap-card">
+            <b>Sokoban</b>
+            <h3>Structural Fork</h3>
+            <div class="trap-pair">
+              <figure><img src="assets/images/traps/fork_critical_step.webp" width="256" height="256" loading="lazy" alt="Sokoban puzzle at a critical step of the solution."><figcaption>Critical step</figcaption></figure>
+              <span class="trap-arrow" aria-hidden="true">→</span>
+              <figure><img src="assets/images/traps/fork_wrong_push.webp" width="256" height="256" loading="lazy" alt="After the wrong push, a box is pinned against the wall."><figcaption>Wrong push</figcaption></figure>
+            </div>
+            <p>The solution passes through steps where several pushes are legal but only some keep the puzzle solvable. 2, 3 and 4 boxes, 100 puzzles each.</p>
+          </article>
+          <article class="trap-card">
+            <b>Pacman</b>
+            <h3>Route-order trap</h3>
+            <div class="trap-pair">
+              <figure><img src="assets/images/traps/pacman_trap_start.webp" width="256" height="256" loading="lazy" alt="Pacman level at the start."><figcaption>Start</figcaption></figure>
+              <span class="trap-arrow" aria-hidden="true">→</span>
+              <figure><img src="assets/images/traps/pacman_trap_decision.webp" width="256" height="256" loading="lazy" alt="Decision point: the nearer food is circled in red, the farther food in teal."><figcaption>Decision point</figcaption></figure>
+            </div>
+            <p>Eating the <span class="key near">nearer food</span> first looks safe but gets Pacman caught later; the <span class="key far">farther food</span> first solves the level. 8×8 grids with 2 to 8 food, plus 10×10 with 8.</p>
+          </article>
+        </div>
+
+        <div class="trap-results">
+          <div id="reasoning-results"></div>
+        </div>
+
+        <div class="trap-example">
+          <div class="analysis-copy">
+            <h3>Forward thinking escapes the Pacman trap</h3>
+            <p>A single rollout eats the nearer food and is caught later. Forward thinking imagines both routes and commits to the one that survives.</p>
+          </div>
+          <figure class="trap-example-figure"><img src="assets/images/fig3_forward_vs_linear.webp" width="2400" height="834" loading="lazy" alt="Pacman: a linear rollout is caught; forward thinking compares two imagined futures and picks the surviving one."><figcaption>(a) Linear rollout: caught after eating the nearer food. (b) Forward thinking: compares two imagined futures and selects the one that succeeds.</figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="section analysis-section" id="rl">
+      <div class="wide">
+        <div class="section-heading">
+          <p class="eyebrow">Reinforcement learning</p>
+          <h2>Learning When and Where to Imagine</h2>
+          <p>Starting from the supervised models, RL on three-box Sokoban uses only a success reward. Nothing tells the model when to compare plans or where to branch.</p>
         </div>
         <div class="analysis-row">
           <div class="analysis-copy">
             <span class="analysis-index">A</span>
-            <h3>Agima reads its imagined frames</h3>
-            <p>Replacing the imagined frames with blank or stale ones drops success to at most 1%. Ground-truth frames barely help in Sokoban, so its predictions are nearly as useful as reality there.</p>
+            <h3>RL improves held-out planning</h3>
+            <p>Every imagination-based model improves, including on four-box puzzles never seen during RL. The action-only model raises its training reward but stays near zero on the test sets.</p>
           </div>
-          <figure>
-            <div class="chart-figure">
-              <div id="ablation"></div>
-              <div class="chart-legend">
-                <span><i class="sw sw-ours"></i>Own predictions</span>
-                <span><i class="sw sw-oracle"></i>Ground-truth frames</span>
-                <span><i class="sw sw-noimg"></i>No Imagine</span>
-                <span><i class="sw sw-other"></i>Blank / stale</span>
-              </div>
-            </div>
-            <figcaption>Success at K = 5 with only the imagined frames swapped.</figcaption>
-          </figure>
+          <figure><img src="assets/images/fig4_rl_curves.webp" width="1547" height="542" loading="lazy" alt="RL training reward and held-out accuracy for four initializations."><figcaption>(a) Training reward. (b–c) Accuracy on Deadlock and Structural Fork; solid lines are three-box and dashed lines four-box.</figcaption></figure>
         </div>
-        <div class="analysis-row reverse">
+        <div class="analysis-row">
           <div class="analysis-copy">
             <span class="analysis-index">B</span>
-            <h3>Forward thinking avoids late failures</h3>
-            <p>A single rollout eats the nearer food and is caught later. Comparing two imagined routes finds the one that survives.</p>
+            <h3>A second plan only when needed</h3>
+            <p>After RL, Agima drafts a second plan in 26–31% of episodes instead of 79%, and almost only when the first one really fails.</p>
           </div>
-          <figure><img src="assets/images/fig3_forward_vs_linear.webp" width="2400" height="834" loading="lazy" alt="Pacman: a linear rollout is caught; forward thinking compares two imagined futures and picks the surviving one."><figcaption>Linear rollout (a) vs. forward thinking (b) in Pacman.</figcaption></figure>
+          <figure><img src="assets/images/fig5_rl_qualitative.webp" width="2400" height="1118" loading="lazy" alt="Before RL a fixed two-candidate comparison; after RL the model rejects two failed plans before finding a successful third."><figcaption>(a) Before RL: a linear rollout or a fixed two-candidate comparison. (b) After RL: two failed plans are rejected before a successful third.</figcaption></figure>
         </div>
         <div class="analysis-row">
           <div class="analysis-copy">
             <span class="analysis-index">C</span>
-            <h3>RL improves held-out planning</h3>
-            <p>With only a success reward on three-box puzzles, every imagination-based model improves, including on four-box puzzles. The action-only model does not.</p>
-          </div>
-          <figure><img src="assets/images/fig4_rl_curves.webp" width="1547" height="542" loading="lazy" alt="RL training reward and held-out accuracy for four initializations."><figcaption>Training reward and accuracy on Deadlock and Structural Fork.</figcaption></figure>
-        </div>
-        <div class="analysis-row reverse">
-          <div class="analysis-copy">
-            <span class="analysis-index">D</span>
-            <h3>A second plan only when needed</h3>
-            <p>After RL, Agima drafts a second plan in 26–31% of episodes instead of 79%, and almost only when the first one really fails.</p>
-          </div>
-          <figure><img src="assets/images/fig5_rl_qualitative.webp" width="2400" height="1118" loading="lazy" alt="Before RL a fixed two-candidate comparison; after RL the model rejects two failed plans before finding a successful third."><figcaption>Before RL (a) and after RL (b): rejecting two failed plans before a successful third.</figcaption></figure>
-        </div>
-        <div class="analysis-row">
-          <div class="analysis-copy">
-            <span class="analysis-index">E</span>
             <h3>Branching moves to critical decisions</h3>
             <p>Agima opens more branches per plan and places more of them where a single push would make the puzzle unsolvable.</p>
           </div>

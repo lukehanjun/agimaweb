@@ -241,7 +241,7 @@
     var state = {task: "sokoban"};
     var controls = el("div", {class: "chart-controls"});
     root.appendChild(controls);
-    controls.appendChild(el("h3", {text: "Alternative futures"}));
+    controls.appendChild(el("h3", {text: "Success on planning traps"}));
     segmented(controls, "Reasoning task", [["sokoban", "Sokoban"], ["pacman", "Pacman"]], state.task, function (v) { state.task = v; draw(); });
     var wrap = el("div", {class: "table-wrap"});
     root.appendChild(wrap);
@@ -268,6 +268,34 @@
         : "Route-order traps: collecting the nearer food first leaves no safe way to finish. G = grid size, F = food items. K = ∞."}));
     }
     draw();
+  }
+
+
+  /* ---------- 5. what K means: one block of the action-chunk figure per K ---------- */
+  function renderKChunks(root) {
+    var info = {
+      "1": "K = 1: after every action the real frame comes back. No imagined frames.",
+      "3": "K = 3: imagine three moves, commit them, then receive the real frame.",
+      "5": "K = 5: imagine five moves before each real frame.",
+      "10": "K = 10: imagine ten moves before each real frame.",
+      "inf": "K = ∞: one real frame at the start; the whole episode is imagined and committed at once."
+    };
+    var sizes = {"1": [2400, 326], "3": [2400, 586], "5": [2400, 586], "10": [2400, 586], "inf": [2400, 444]};
+    var controls = el("div", {class: "chart-controls"});
+    root.appendChild(controls);
+    var note = el("p", {class: "chart-note"});
+    var legend = el("img", {class: "k-legend", src: FIG + "kchunks/legend.webp", width: "2400", height: "76",
+      alt: "Legend: o ground-truth frame, ô imagined frame, a committed action, â imagined action."});
+    var img = el("img", {class: "k-block", width: "2400", height: "586", alt: ""});
+    root.appendChild(note); root.appendChild(el("div", {class: "k-frame"}, [legend, img]));
+    function show(k) {
+      note.textContent = info[k];
+      img.src = FIG + "kchunks/k" + k + ".webp";
+      img.width = sizes[k][0]; img.height = sizes[k][1];
+      img.alt = "The same Sokoban episode planned with K = " + KLABEL[k] + ".";
+    }
+    segmented(controls, "Action chunk size K", [["1", "K = 1"], ["3", "K = 3"], ["5", "K = 5"], ["10", "K = 10"], ["inf", "K = ∞"]], "5", show);
+    show("5");
   }
 
   /* ---------- tabs, copy, back-to-top, contents nav ---------- */
@@ -360,6 +388,7 @@
     if ((m = document.getElementById("ablation"))) renderAblation(m);
     if ((m = document.getElementById("rollout-explorer"))) renderExplorer(m);
     if ((m = document.getElementById("reasoning-results"))) renderReasoning(m);
+    if ((m = document.getElementById("k-chunks"))) renderKChunks(m);
     initTabs(); initCopy(); initContents(); initImagineAnimation();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
