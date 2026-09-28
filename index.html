@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Agima teaches one omni model to imagine the visual consequences of its own actions and to plan with them before acting.">
+  <meta property="og:title" content="Learning to Plan with Agentic Imagination">
+  <meta property="og:description" content="Agima imagines where its actions lead, then plans from those imagined frames.">
+  <meta property="og:image" content="assets/images/fig1_overview.webp">
+  <title>Learning to Plan with Agentic Imagination | Agima</title>
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script defer src="assets/js/main.js"></script>
+</head>
+<body id="top">
+  <header class="hero">
+    <div class="hero-inner">
+      <h1>Learning to Plan with<br>Agentic Imagination</h1>
+      <div class="rule"></div>
+      <!-- TODO(authors): replace with the real author list, marks and affiliations. -->
+      <div class="authors">
+        <span><span class="todo">Author names</span></span>
+        <span class="affiliations">Affiliations</span>
+      </div>
+      <nav class="publication-links" aria-label="Publication links">
+        <!-- TODO(links): set each href; data-todo marks unfinished links. -->
+        <a class="button" href="#" data-todo>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 18c-4 1-4-2-5-2m10 4v-3c0-1 .1-1.5-.5-2 2 0 4-.5 4-4 0-1-.4-2-1-2.5.1-.5.5-2-.1-2.5 0 0-1-.3-3 1a10 10 0 0 0-5 0c-2-1.3-3-1-3-1-.6 1.5-.2 2-.1 2.5C3.4 9 3 10 3 11c0 3.5 2 4 4 4-.5.4-.6 1-.5 2v3"/></svg>
+          Code
+        </a>
+        <a class="button" href="#" data-todo>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"/></svg>
+          Paper
+        </a>
+        <a class="button" href="#" data-todo>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4l7 16M19 4l-7 16M8 10h8M7 14h10"/></svg>
+          arXiv
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section intro-section" id="overview">
+      <div class="content-grid">
+        <aside class="contents" aria-label="Page contents">
+          <strong>Contents</strong>
+          <a href="#abstract">Abstract</a>
+          <a href="#method">Method</a>
+          <a href="#environments">Environments</a>
+          <a href="#results">Results</a>
+          <a href="#analysis">Analysis</a>
+          <a href="#explorer">Explorer</a>
+          <a href="#bibtex">BibTeX</a>
+        </aside>
+        <div class="prose">
+          <p class="lead">
+            <mark>Agima imagines before it acts.</mark> One omni model proposes an action,
+            generates the frame it leads to, and keeps planning from that imagined frame
+            before touching the real environment.
+          </p>
+
+          <h2 id="abstract">Abstract</h2>
+          <div class="heading-rule"></div>
+          <p>
+            A single push in Sokoban can make a puzzle unsolvable. Avoiding such errors requires
+            anticipating consequences before acting, which is especially hard when feedback is sparse
+            and actions cannot be undone. We introduce Agima, a training framework that teaches an agent
+            to imagine before it acts. A single omni model both proposes actions and generates images of
+            where they lead, then treats these imagined frames as observations. It can follow a plan
+            forward, test an alternative move, or compare competing plans, all before touching the real
+            environment. Supervised fine-tuning teaches these forms of imagination, and reinforcement
+            learning then optimizes the model's textual planning decisions using only binary task-success
+            rewards.
+          </p>
+          <p>
+            Across four environments spanning Maze2D, Sokoban, Pacman, and PushT, Agima plans in harder or
+            unseen configurations excluded from training. With supervised fine-tuning alone on two-box
+            Sokoban, it solves 40% of four-box puzzles while seeing the real board only once every five
+            moves; an action-only planner fine-tuned from the same backbone solves 2%. After RL, Agima
+            solves more held-out Sokoban puzzles and adapts how it uses imagination: it drafts a second
+            plan mainly when it foresees the first one failing, and branches more often at critical
+            decisions.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section method-section" id="method">
+      <div class="wide">
+        <div class="section-heading">
+          <p class="eyebrow">Method</p>
+          <h2>How Agima Imagines</h2>
+          <p>Each imagined frame becomes an observation for the next decision. Agima learns three ways to use them.</p>
+        </div>
+        <figure class="wide-figure imagine-figure">
+          <div class="team-diagram">
+            <img src="assets/images/fig1_overview.webp" width="2401" height="1150" alt="Planning with agentic imagination: (a) feedback after acting, (b) feedback through imagination with Agima, (c) counterfactual branching and forward thinking in Sokoban.">
+            <span class="team-highlight team-highlight-primary" aria-hidden="true"></span>
+          </div>
+          <figcaption>(a) A conventional agent gets feedback only after acting. (b) Agima predicts the outcome of its own actions and uses each prediction as an internal observation. (c) In Sokoban, branching rejects a deadlocking push and forward thinking compares two plans before execution.</figcaption>
+        </figure>
+
+        <div class="detail-grid format-grid">
+          <article data-format-step="linear">
+            <b>Linear rollout</b>
+            <h3>Follow one plan</h3>
+            <svg class="format-diagram" viewBox="0 0 320 96" role="img" aria-label="Linear rollout: real frame, then alternating actions and imagined frames.">
+              <defs><marker id="ah-lin" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path class="arrow-head" d="M0,0 L7,3.5 L0,7 Z"/></marker></defs>
+              <rect class="frame" x="4" y="30" width="36" height="36" rx="3"/><text x="22" y="52" text-anchor="middle">o<tspan font-size="9" dy="3">t</tspan></text>
+              <path class="edge" d="M41 48 H56" marker-end="url(#ah-lin)"/>
+              <circle class="act" cx="72" cy="48" r="15"/><text x="72" y="52" text-anchor="middle">â</text>
+              <path class="edge" d="M88 48 H101" marker-end="url(#ah-lin)"/>
+              <rect class="frame img" x="104" y="30" width="36" height="36" rx="3"/><text x="122" y="52" text-anchor="middle">ô</text>
+              <path class="edge" d="M141 48 H156" marker-end="url(#ah-lin)"/>
+              <circle class="act" cx="172" cy="48" r="15"/><text x="172" y="52" text-anchor="middle">â</text>
+              <path class="edge" d="M188 48 H201" marker-end="url(#ah-lin)"/>
+              <rect class="frame img" x="204" y="30" width="36" height="36" rx="3"/><text x="222" y="52" text-anchor="middle">ô</text>
+              <path class="edge" d="M241 48 H254" marker-end="url(#ah-lin)"/>
+              <text x="266" y="52" text-anchor="middle">…</text>
+              <rect class="frame img" x="280" y="30" width="36" height="36" rx="3"/><text x="298" y="52" text-anchor="middle">ô</text>
+            </svg>
+            <p>Imagine the next frame after each action and keep planning from it.</p>
+          </article>
+          <article data-format-step="branch">
+            <b>Counterfactual branching</b>
+            <h3>Test one move</h3>
+            <svg class="format-diagram" viewBox="0 0 320 96" role="img" aria-label="Counterfactual branching: an alternative action leads to a rejected frame; the main plan continues.">
+              <defs><marker id="ah-br" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path class="arrow-head" d="M0,0 L7,3.5 L0,7 Z"/></marker></defs>
+              <rect class="frame" x="4" y="30" width="36" height="36" rx="3"/><text x="22" y="52" text-anchor="middle">o<tspan font-size="9" dy="3">t</tspan></text>
+              <path class="edge bad" d="M41 40 C52 22 58 20 66 20" marker-end="url(#ah-br)"/>
+              <circle class="act bad" cx="82" cy="20" r="14"/><text x="82" y="24" text-anchor="middle">â′</text>
+              <path class="edge bad" d="M97 20 H110" marker-end="url(#ah-br)"/>
+              <rect class="frame bad" x="113" y="3" width="34" height="34" rx="3"/><text x="130" y="24" text-anchor="middle">ô′</text>
+              <text class="glyph bad" x="160" y="25">✗ reject</text>
+              <path class="edge good" d="M41 56 C52 74 58 76 66 76" marker-end="url(#ah-br)"/>
+              <circle class="act good" cx="82" cy="76" r="14"/><text x="82" y="80" text-anchor="middle">â</text>
+              <path class="edge" d="M97 76 H110" marker-end="url(#ah-br)"/>
+              <rect class="frame img" x="113" y="59" width="34" height="34" rx="3"/><text x="130" y="80" text-anchor="middle">ô</text>
+              <path class="edge" d="M148 76 H161" marker-end="url(#ah-br)"/>
+              <circle class="act" cx="177" cy="76" r="14"/><text x="177" y="80" text-anchor="middle">â</text>
+              <path class="edge" d="M192 76 H205" marker-end="url(#ah-br)"/>
+              <rect class="frame img" x="208" y="59" width="34" height="34" rx="3"/><text x="225" y="80" text-anchor="middle">ô</text>
+              <path class="edge" d="M243 76 H256" marker-end="url(#ah-br)"/>
+              <text x="270" y="80" text-anchor="middle">…</text>
+            </svg>
+            <p>Try another action, imagine where it leads, and reject it if it fails.</p>
+          </article>
+          <article data-format-step="forward">
+            <b>Forward thinking</b>
+            <h3>Compare whole plans</h3>
+            <svg class="format-diagram" viewBox="0 0 320 96" role="img" aria-label="Forward thinking: two candidate plans imagined from the same frame; one fails and one succeeds.">
+              <defs><marker id="ah-fw" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path class="arrow-head" d="M0,0 L7,3.5 L0,7 Z"/></marker></defs>
+              <rect class="frame" x="4" y="30" width="36" height="36" rx="3"/><text x="22" y="52" text-anchor="middle">o<tspan font-size="9" dy="3">t</tspan></text>
+              <text x="54" y="16" font-size="10">A</text><text x="54" y="92" font-size="10">B</text>
+              <path class="edge" d="M41 40 C52 22 58 20 66 20" marker-end="url(#ah-fw)"/>
+              <circle class="act" cx="82" cy="20" r="14"/><text x="82" y="24" text-anchor="middle">â</text>
+              <path class="edge" d="M97 20 H110" marker-end="url(#ah-fw)"/>
+              <rect class="frame img" x="113" y="3" width="34" height="34" rx="3"/><text x="130" y="24" text-anchor="middle">ô</text>
+              <path class="edge" d="M148 20 H176" marker-end="url(#ah-fw)"/><text x="162" y="15" text-anchor="middle">…</text>
+              <rect class="frame bad" x="179" y="3" width="34" height="34" rx="3"/><text x="196" y="24" text-anchor="middle">ô</text>
+              <text class="glyph bad" x="224" y="25">✗ fails</text>
+              <path class="edge" d="M41 56 C52 74 58 76 66 76" marker-end="url(#ah-fw)"/>
+              <circle class="act" cx="82" cy="76" r="14"/><text x="82" y="80" text-anchor="middle">â</text>
+              <path class="edge" d="M97 76 H110" marker-end="url(#ah-fw)"/>
+              <rect class="frame img" x="113" y="59" width="34" height="34" rx="3"/><text x="130" y="80" text-anchor="middle">ô</text>
+              <path class="edge good" d="M148 76 H176" marker-end="url(#ah-fw)"/><text x="162" y="71" text-anchor="middle">…</text>
+              <rect class="frame good" x="179" y="59" width="34" height="34" rx="3"/><text x="196" y="80" text-anchor="middle">ô</text>
+              <text class="glyph good" x="224" y="81">✓ commit</text>
+            </svg>
+            <p>Imagine complete candidate plans and execute the one that succeeds.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="environments">
+      <div class="wide">
+        <div class="section-heading">
+          <p class="eyebrow">Setup</p>
+          <h2>Environments</h2>
+          <p>Four tasks with different dynamics. Agima trains on the easier setting and is tested on a harder one.</p>
+        </div>
+        <figure class="wide-figure">
+          <img src="assets/images/fig2_environments_rollout.webp" width="2400" height="1239" loading="lazy" alt="Training and test states for Maze2D, Sokoban, Pacman and PushT, and an imagined Pacman rollout.">
+          <figcaption>(a) Training and test states: Maze2D mazes grow, Sokoban goes from two to four boxes, Pacman moves to 12×12 grids with more food, and PushT starts farther from the center. (b) Agima interleaves actions and predicted states, then executes the actions.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section results-section" id="results">
+      <div class="wide">
+        <div class="section-heading">
+          <p class="eyebrow">Results</p>
+          <h2>Imagination transfers to harder tasks</h2>
+        </div>
+        <div class="result-groups" aria-label="Headline results">
+          <section class="result-group" aria-labelledby="transfer-heading">
+            <div class="result-group-heading">
+              <h3 id="transfer-heading">Easy-to-hard generalization</h3>
+              <p>Real board every five actions (K = 5). Compared with the same backbone trained without imagined frames.</p>
+            </div>
+            <div class="metrics">
+              <article><span>40</span><strong>%</strong><p>Four-box Sokoban after training on two boxes (action-only: 2%)</p></article>
+              <article><span>+36</span><strong>pp</strong><p>Pacman over the action-only model</p></article>
+            </div>
+          </section>
+          <section class="result-group" aria-labelledby="futures-heading">
+            <div class="result-group-heading">
+              <h3 id="futures-heading">Reasoning over alternative futures</h3>
+              <p>Same training episodes, different imagination traces. One real observation, then pure imagination (K = ∞).</p>
+            </div>
+            <div class="metrics">
+              <article><span>+38</span><strong>pp</strong><p>Two-box Sokoban Deadlock with forward thinking</p></article>
+              <article><span>+32</span><strong>pp</strong><p>Pacman route-order traps (G8/F4) with forward thinking</p></article>
+            </div>
+          </section>
+        </div>
+
+        <div class="results-block">
+          <div id="k-results"></div>
+        </div>
+        <div class="results-block">
+          <div id="reasoning-results"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section analysis-section" id="analysis">
+      <div class="wide">
+        <div class="section-heading">
+          <p class="eyebrow">Analysis</p>
+          <h2>What imagination changes</h2>
+        </div>
+        <div class="analysis-row">
+          <div class="analysis-copy">
+            <span class="analysis-index">A</span>
+            <h3>Agima reads its imagined frames</h3>
+            <p>Replacing the imagined frames with blank or stale ones drops success to at most 1%. Ground-truth frames barely help in Sokoban, so its predictions are nearly as useful as reality there.</p>
+          </div>
+          <figure>
+            <div class="chart-figure">
+              <div id="ablation"></div>
+              <div class="chart-legend">
+                <span><i class="sw sw-ours"></i>Own predictions</span>
+                <span><i class="sw sw-oracle"></i>Ground-truth frames</span>
+                <span><i class="sw sw-noimg"></i>No Imagine</span>
+                <span><i class="sw sw-other"></i>Blank / stale</span>
+              </div>
+            </div>
+            <figcaption>Success at K = 5 with only the imagined frames swapped.</figcaption>
+          </figure>
+        </div>
+        <div class="analysis-row reverse">
+          <div class="analysis-copy">
+            <span class="analysis-index">B</span>
+            <h3>Forward thinking avoids late failures</h3>
+            <p>A single rollout eats the nearer food and is caught later. Comparing two imagined routes finds the one that survives.</p>
+          </div>
+          <figure><img src="assets/images/fig3_forward_vs_linear.webp" width="2400" height="834" loading="lazy" alt="Pacman: a linear rollout is caught; forward thinking compares two imagined futures and picks the surviving one."><figcaption>Linear rollout (a) vs. forward thinking (b) in Pacman.</figcaption></figure>
+        </div>
+        <div class="analysis-row">
+          <div class="analysis-copy">
+            <span class="analysis-index">C</span>
+            <h3>RL improves held-out planning</h3>
+            <p>With only a success reward on three-box puzzles, every imagination-based model improves, including on four-box puzzles. The action-only model does not.</p>
+          </div>
+          <figure><img src="assets/images/fig4_rl_curves.webp" width="1547" height="542" loading="lazy" alt="RL training reward and held-out accuracy for four initializations."><figcaption>Training reward and accuracy on Deadlock and Structural Fork.</figcaption></figure>
+        </div>
+        <div class="analysis-row reverse">
+          <div class="analysis-copy">
+            <span class="analysis-index">D</span>
+            <h3>A second plan only when needed</h3>
+            <p>After RL, Agima drafts a second plan in 26–31% of episodes instead of 79%, and almost only when the first one really fails.</p>
+          </div>
+          <figure><img src="assets/images/fig5_rl_qualitative.webp" width="2400" height="1118" loading="lazy" alt="Before RL a fixed two-candidate comparison; after RL the model rejects two failed plans before finding a successful third."><figcaption>Before RL (a) and after RL (b): rejecting two failed plans before a successful third.</figcaption></figure>
+        </div>
+        <div class="analysis-row">
+          <div class="analysis-copy">
+            <span class="analysis-index">E</span>
+            <h3>Branching moves to critical decisions</h3>
+            <p>Agima opens more branches per plan and places more of them where a single push would make the puzzle unsolvable.</p>
+          </div>
+          <figure><img src="assets/images/fig6_adaptive_reasoning.webp" width="1921" height="507" loading="lazy" alt="Adaptive use of imagination across RL checkpoints."><figcaption>Forward thinking becomes failure-triggered; branching targets critical steps.</figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="explorer">
+      <div class="wide">
+        <div class="section-heading">
+          <p class="eyebrow">Explorer</p>
+          <h2>Rollout Explorer</h2>
+          <p>Full trajectories for every environment and K. A real frame arrives every K actions; the rest are imagined.</p>
+        </div>
+        <div id="rollout-explorer"></div>
+      </div>
+    </section>
+
+    <section class="section citation-section" id="bibtex">
+      <div class="narrow">
+        <div class="section-heading">
+          <p class="eyebrow">Citation</p>
+          <h2>BibTeX</h2>
+        </div>
+        <div class="citation-box">
+          <button type="button" class="copy-btn" id="copy-bibtex" data-copy="bibtex-text">Copy</button>
+          <!-- TODO(bibtex): fill in authors, venue and year. -->
+          <pre><code id="bibtex-text">@article{agima2026,
+  title   = {Learning to Plan with Agentic Imagination},
+  author  = {Author names},
+  journal = {arXiv preprint},
+  year    = {2026}
+}</code></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <a class="back-to-top" href="#top" aria-label="Back to top">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+  </a>
+
+  <footer>
+    <div>
+      <strong>Agima</strong>
+      <span>Learning to Plan with Agentic Imagination</span>
+    </div>
+    <p>
+      Website design adapted from the
+      <a href="https://playful-rats.github.io/">RATs project page</a>,
+      itself inspired by <a href="https://echo-bench.github.io/">ECHO</a>
+      and <a href="https://nerfies.github.io/">Nerfies</a>.
+    </p>
+  </footer>
+</body>
+</html>
