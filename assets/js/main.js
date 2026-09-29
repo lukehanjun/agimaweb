@@ -88,13 +88,6 @@
       ]
     }
   };
-  // Rollout explorer: pages rendered from the appendix trajectory figures.
-  var ROLLOUTS = {
-    maze2d: {label: "Maze2D", k: {"1": [["maze2d_k1_1", "0-17"]], "3": [["maze2d_k3_2", "0-15"], ["maze2d_k3_3", "15-27"]], "5": [["maze2d_k5_4", "0-23"]], "10": [["maze2d_k10_5", "0-21"]], "inf": [["maze2d_kinf_6", "0-13"]]}},
-    sokoban: {label: "Sokoban", k: {"1": [["sokoban_k1_1", "0-21"]], "3": [["sokoban_k3_2", "0-21"]], "5": [["sokoban_k5_3", "0-19"]], "10": [["sokoban_k10_4", "0-19"]], "inf": [["sokoban_kinf_5", "0-17"]]}},
-    pacman: {label: "Pacman", k: {"1": [["pacman_k1_1", "0-33"]], "3": [["pacman_k3_2", "0-20"], ["pacman_k3_3", "20-33"]], "5": [["pacman_k5_4", "0-20"], ["pacman_k5_5", "20-33"]], "10": [["pacman_k10_6", "0-20"], ["pacman_k10_7", "20-35"]], "inf": [["pacman_kinf_8", "0-15"], ["pacman_kinf_9", "15-27"]]}},
-    pusht: {label: "PushT", k: {"1": [["pusht_k1_1", "0-19"]], "3": [["pusht_k3_2", "0-18"]], "5": [["pusht_k5_3", "0-15"], ["pusht_k5_4", "15-27"]], "10": [["pusht_k10_5", "0-20"]], "inf": [["pusht_kinf_6", "0-15"], ["pusht_kinf_7", "15-28"]]}}
-  };
   var KLABEL = {"1": "1", "3": "3", "5": "5", "10": "10", "inf": "∞"};
   var FIG = "assets/images/";
 
@@ -212,26 +205,25 @@
     root.appendChild(grid);
   }
 
-  /* ---------- 3. rollout explorer ---------- */
+  /* ---------- 3. rollout explorer: one GIF per environment and K ---------- */
+  var EXPLORER_ENVS = [["maze2d", "Maze2D"], ["sokoban", "Sokoban"], ["pacman", "Pacman"], ["pusht", "PushT"]];
   function renderExplorer(root) {
     var state = {env: "sokoban", k: "5"};
     var controls = el("div", {class: "chart-controls explorer-controls"});
     root.appendChild(controls);
-    segmented(controls, "Environment", Object.keys(ROLLOUTS).map(function (e) { return [e, ROLLOUTS[e].label]; }), state.env, function (v) { state.env = v; draw(); });
+    segmented(controls, "Environment", EXPLORER_ENVS, state.env, function (v) { state.env = v; draw(); });
     segmented(controls, "Explorer K", [["1", "K = 1"], ["3", "K = 3"], ["5", "K = 5"], ["10", "K = 10"], ["inf", "K = ∞"]], state.k, function (v) { state.k = v; draw(); });
     var caption = el("p", {class: "chart-note"});
-    var frame = el("div", {class: "explorer-frame"});
-    root.appendChild(caption); root.appendChild(frame);
+    var img = el("img", {class: "explorer-gif", width: "530", height: "332", alt: ""});
+    root.appendChild(caption); root.appendChild(el("div", {class: "explorer-frame"}, [img]));
     function draw() {
-      var pages = ROLLOUTS[state.env].k[state.k];
-      var first = pages[0][1].split("-")[0], last = pages[pages.length - 1][1].split("-")[1];
-      caption.textContent = ROLLOUTS[state.env].label + ", K = " + KLABEL[state.k] + ": steps " + first + "–" + last +
-        (state.k === "1" ? ". Real observation after every action." : state.k === "inf" ? ". One real observation, then every frame is imagined." : ". A real observation every " + state.k + " actions; frames in between are imagined.");
-      frame.innerHTML = "";
-      pages.forEach(function (p) {
-        frame.appendChild(el("img", {src: FIG + "rollouts/" + p[0] + ".webp", loading: "lazy", decoding: "async",
-          alt: ROLLOUTS[state.env].label + " trajectory at K = " + KLABEL[state.k] + ", steps " + p[1]}));
-      });
+      var label = EXPLORER_ENVS.filter(function (e) { return e[0] === state.env; })[0][1];
+      caption.textContent = label + ", K = " + KLABEL[state.k] + ". " + (state.k === "1"
+        ? "A real frame after every action; nothing is imagined."
+        : state.k === "inf" ? "One real frame at the start; every later frame is imagined."
+        : "Imagined frames, then a real frame every " + state.k + " actions.");
+      img.src = FIG.replace("images/", "gifs/") + "rollout/" + state.env + "_k" + state.k + ".gif";
+      img.alt = label + " episode at K = " + KLABEL[state.k] + ": imagined frames next to the ground truth.";
     }
     draw();
   }
@@ -357,7 +349,7 @@
     var steps = [
       {name: "linear", box: {left: "50.4%", top: "0.3%", width: "49.3%", height: "24.2%"}},
       {name: "branch", box: {left: "0.6%", top: "27.8%", width: "52.6%", height: "53.2%"}},
-      {name: "forward", box: {left: "53.1%", top: "27.8%", width: "46.6%", height: "52.4%"}}
+      {name: "forward", box: {left: "45.2%", top: "27.8%", width: "54.5%", height: "53.2%"}}
     ];
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     var idx = 0, timer = null;

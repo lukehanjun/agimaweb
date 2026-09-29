@@ -179,12 +179,42 @@
         <div class="section-heading">
           <p class="eyebrow">Setup</p>
           <h2>Environments</h2>
-          <p>Four tasks with different dynamics. Agima trains on the easier setting and is tested on a harder one.</p>
+          <p>Four tasks with different dynamics. Agima trains on the easier setting (left) and is tested on a harder one it never saw (right). Each clip is a real environment rollout.</p>
         </div>
-        <figure class="wide-figure">
-          <img src="assets/images/fig2_environments_rollout.webp" width="2400" height="1239" loading="lazy" alt="Training and test states for Maze2D, Sokoban, Pacman and PushT, and an imagined Pacman rollout.">
-          <figcaption>(a) Training and test states: Maze2D mazes grow, Sokoban goes from two to four boxes, Pacman moves to 12×12 grids with more food, and PushT starts farther from the center. (b) Agima interleaves actions and predicted states, then executes the actions.</figcaption>
-        </figure>
+        <div class="env-grid">
+          <article class="env-card">
+            <h3>Maze2D</h3>
+            <p>Navigate to the red goal around walls.</p>
+            <div class="env-pair">
+              <figure><img src="assets/gifs/env/maze2d_train.gif" width="256" height="282" loading="lazy" alt="Maze2D training episode, ground-truth rollout."><figcaption>Train: 11×11 maze</figcaption></figure>
+              <figure><img src="assets/gifs/env/maze2d_test.gif" width="256" height="282" loading="lazy" alt="Maze2D test episode, ground-truth rollout."><figcaption>Test: larger maze</figcaption></figure>
+            </div>
+          </article>
+          <article class="env-card">
+            <h3>Sokoban</h3>
+            <p>Push every box onto a goal; a wrong push can be permanent.</p>
+            <div class="env-pair">
+              <figure><img src="assets/gifs/env/sokoban_train.gif" width="256" height="282" loading="lazy" alt="Sokoban training episode, ground-truth rollout."><figcaption>Train: two boxes</figcaption></figure>
+              <figure><img src="assets/gifs/env/sokoban_test.gif" width="256" height="282" loading="lazy" alt="Sokoban test episode, ground-truth rollout."><figcaption>Test: four boxes</figcaption></figure>
+            </div>
+          </article>
+          <article class="env-card">
+            <h3>Pacman</h3>
+            <p>Eat all food while a ghost chases after every move.</p>
+            <div class="env-pair">
+              <figure><img src="assets/gifs/env/pacman_train.gif" width="256" height="282" loading="lazy" alt="Pacman training episode, ground-truth rollout."><figcaption>Train: 9×9, 8 food</figcaption></figure>
+              <figure><img src="assets/gifs/env/pacman_test.gif" width="256" height="282" loading="lazy" alt="Pacman test episode, ground-truth rollout."><figcaption>Test: 12×12, 12 food, closer ghost</figcaption></figure>
+            </div>
+          </article>
+          <article class="env-card">
+            <h3>PushT</h3>
+            <p>Push the gray T onto the green target with continuous moves.</p>
+            <div class="env-pair">
+              <figure><img src="assets/gifs/env/pusht_train.gif" width="256" height="282" loading="lazy" alt="PushT training episode, ground-truth rollout."><figcaption>Train: starts near the center</figcaption></figure>
+              <figure><img src="assets/gifs/env/pusht_test.gif" width="256" height="282" loading="lazy" alt="PushT test episode, ground-truth rollout."><figcaption>Test: starts far from the center</figcaption></figure>
+            </div>
+          </article>
+        </div>
         <div class="k-explainer">
           <h3>Action chunks K</h3>
           <p>K is how many actions Agima commits before it sees the real board again. In between, it plans from its own imagined frames. K = 1 is fully reactive; K = ∞ imagines the whole episode from a single frame.</p>
@@ -308,7 +338,7 @@
             <h3>RL improves held-out planning</h3>
             <p>Every imagination-based model improves, including on four-box puzzles never seen during RL. The action-only model raises its training reward but stays near zero on the test sets.</p>
           </div>
-          <figure><img src="assets/images/fig4_rl_curves.webp" width="1547" height="542" loading="lazy" alt="RL training reward and held-out accuracy for four initializations."><figcaption>(a) Training reward. (b–c) Accuracy on Deadlock and Structural Fork; solid lines are three-box and dashed lines four-box.</figcaption></figure>
+          <figure><img class="chart-img" src="assets/images/fig4_rl_curves.webp" width="1547" height="542" loading="lazy" alt="RL training reward and held-out accuracy for four initializations."><figcaption>(a) Training reward. (b–c) Accuracy on Deadlock and Structural Fork; solid lines are three-box and dashed lines four-box.</figcaption></figure>
         </div>
         <div class="analysis-row">
           <div class="analysis-copy">
@@ -324,7 +354,7 @@
             <h3>Branching moves to critical decisions</h3>
             <p>Agima opens more branches per plan and places more of them where a single push would make the puzzle unsolvable.</p>
           </div>
-          <figure><img src="assets/images/fig6_adaptive_reasoning.webp" width="1921" height="507" loading="lazy" alt="Adaptive use of imagination across RL checkpoints."><figcaption>Forward thinking becomes failure-triggered; branching targets critical steps.</figcaption></figure>
+          <figure><img class="chart-img" src="assets/images/fig6_adaptive_reasoning.webp" width="1921" height="507" loading="lazy" alt="Adaptive use of imagination across RL checkpoints."><figcaption>Forward thinking becomes failure-triggered; branching targets critical steps.</figcaption></figure>
         </div>
       </div>
     </section>
@@ -334,7 +364,7 @@
         <div class="section-heading">
           <p class="eyebrow">Explorer</p>
           <h2>Rollout Explorer</h2>
-          <p>Full trajectories for every environment and K. A real frame arrives every K actions; the rest are imagined.</p>
+          <p>Agima on the hard test sets, from the paper's appendix episodes. Left is what Agima sees: its own imagined frames, until a real frame arrives every K actions (the pause). Right is the true environment at the same step.</p>
         </div>
         <div id="rollout-explorer"></div>
       </div>
