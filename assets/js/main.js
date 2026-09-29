@@ -290,6 +290,85 @@
     show("5");
   }
 
+
+  /* ---------- 6. animated action-chunk timeline: one row per K ---------- */
+  function renderKAnimation(root) {
+    var N = 16;                                   // actions in the example episode
+    var KS = [["1", 1], ["3", 3], ["5", 5], ["10", 10], ["inf", Infinity]];
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var grid = el("div", {class: "kanim-grid", role: "img",
+      "aria-label": "Timeline of a 16-action episode for K = 1, 3, 5, 10 and infinity: real frames arrive every K actions; frames in between are imagined."});
+    var head = el("div", {class: "kanim-row kanim-head"}, [el("span", {class: "kanim-label"})]);
+    for (var t = 0; t <= N; t++) head.appendChild(el("span", {class: "kanim-step", text: String(t)}));
+    head.appendChild(el("span", {class: "kanim-count", text: "real frames"}));
+    grid.appendChild(head);
+    var rows = KS.map(function (k) {
+      var row = el("div", {class: "kanim-row"}, [el("span", {class: "kanim-label", text: "K = " + KLABEL[k[0]]})]);
+      var cells = [];
+      for (var t = 0; t <= N; t++) { var c = el("span", {class: "kanim-cell"}); cells.push(c); row.appendChild(c); }
+      var count = el("span", {class: "kanim-count kanim-num", text: "0"});
+      row.appendChild(count);
+      grid.appendChild(row);
+      return {K: k[1], cells: cells, count: count, real: 0};
+    });
+    var legend = el("div", {class: "chart-legend kanim-legend"}, [
+      el("span", {}, [el("i", {class: "kanim-sw real"}), document.createTextNode("real frame from the environment")]),
+      el("span", {}, [el("i", {class: "kanim-sw imag"}), document.createTextNode("imagined frame")]),
+      el("span", {}, [el("i", {class: "kanim-sw flip"}), document.createTextNode("chunk ends: the real frame replaces the imagined one")])
+    ]);
+    root.appendChild(el("div", {class: "kanim-wrap"}, [grid]));
+    root.appendChild(legend);
+
+    // kind of cell t for chunk size K: "real" (feedback, no imagination), "imag", or "flip" (imagined, then replaced)
+    function kind(K, t) {
+      if (t === 0) return "real";
+      if (K === 1) return "real";
+      if (t % K === 0 || t === N) return "flip";
+      return "imag";
+    }
+    function paint(r, t, state) {
+      var c = r.cells[t];
+      c.className = "kanim-cell is-" + state;
+      c.textContent = state === "imag" ? "ô" : "o";
+      if (state === "real") { r.real += 1; r.count.textContent = String(r.real); }
+    }
+    function reset() {
+      rows.forEach(function (r) { r.real = 0; r.count.textContent = "0"; r.cells.forEach(function (c) { c.className = "kanim-cell"; c.textContent = ""; }); });
+    }
+    function finalState() {
+      reset();
+      for (var t = 0; t <= N; t++) rows.forEach(function (r) { var k = kind(r.K, t); paint(r, t, k === "flip" ? "real" : k); });
+    }
+    if (reduce) { finalState(); return; }
+
+    var t = 0, timer = null, running = false;
+    function tick() {
+      if (t > N) { timer = setTimeout(function () { reset(); t = 0; tick(); }, 2000); return; }
+      var flips = [];
+      rows.forEach(function (r) {
+        var k = kind(r.K, t);
+        paint(r, t, k === "flip" ? "imag" : k);
+        if (k === "flip") flips.push(r);
+      });
+      head.children[t + 1].classList.add("is-now");
+      var prev = head.querySelector(".is-now:not(:nth-child(" + (t + 2) + "))");
+      if (prev) prev.classList.remove("is-now");
+      var step = t;
+      timer = setTimeout(function () {
+        flips.forEach(function (r) { paint(r, step, "real"); r.cells[step].classList.add("is-flip"); });
+        t += 1;
+        timer = setTimeout(tick, flips.length ? 520 : 300);
+      }, flips.length ? 380 : 220);
+    }
+    function start() { if (running) return; running = true; tick(); }
+    function stop() { running = false; clearTimeout(timer); }
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        if (entries[0].isIntersecting) start(); else stop();
+      }, {threshold: 0.3}).observe(grid);
+    } else { start(); }
+  }
+
   /* ---------- tabs, copy, back-to-top, contents nav ---------- */
   function initTabs() {
     document.querySelectorAll("[data-tabs]").forEach(function (box) {
@@ -381,6 +460,7 @@
     if ((m = document.getElementById("rollout-explorer"))) renderExplorer(m);
     if ((m = document.getElementById("reasoning-results"))) renderReasoning(m);
     if ((m = document.getElementById("k-chunks"))) renderKChunks(m);
+    if ((m = document.getElementById("k-anim"))) renderKAnimation(m);
     initTabs(); initCopy(); initContents(); initImagineAnimation();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
