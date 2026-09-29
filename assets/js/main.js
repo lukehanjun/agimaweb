@@ -92,7 +92,7 @@
   var FIG = "assets/images/";
 
   /* ---------- helpers ---------- */
-  var GROUPS = {closed: "Proprietary · not fine-tuned", tuned: "Fine-tuned on our training data"};
+  var GROUPS = {closed: "Closed-source", tuned: "Fine-tuned on our training data"};
   function groupOf(type) { return type === "closed" ? "closed" : "tuned"; }
 
   function el(tag, attrs, kids) {
