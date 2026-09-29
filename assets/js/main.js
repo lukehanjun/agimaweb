@@ -92,6 +92,9 @@
   var FIG = "assets/images/";
 
   /* ---------- helpers ---------- */
+  var GROUPS = {closed: "Proprietary · not fine-tuned", tuned: "Fine-tuned on our training data"};
+  function groupOf(type) { return type === "closed" ? "closed" : "tuned"; }
+
   function el(tag, attrs, kids) {
     var n = document.createElement(tag);
     if (attrs) Object.keys(attrs).forEach(function (k) {
@@ -147,11 +150,14 @@
     });
     function draw() {
       var rows = K_RESULTS[state.k];
-      note.textContent = K_NOTE[state.k];
+      note.textContent = K_NOTE[state.k] + " Gemini and GPT are prompted without fine-tuning; all other models are fine-tuned on the same training data.";
       grid.innerHTML = "";
       ENVS.forEach(function (env, ei) {
         var panel = el("div", {class: "bar-panel"}, [el("h4", {text: env})]);
+        var lastGroup = null;
         rows.forEach(function (r) {
+          var g = groupOf(r[1]);
+          if (g !== lastGroup) { panel.appendChild(el("div", {class: "bar-group", text: GROUPS[g]})); lastGroup = g; }
           var v = r[2][ei];
           var bar = el("div", {class: "bar bar-" + r[1], style: "width:" + Math.max(v, 0.6) + "%"});
           var row = el("div", {class: "bar-row"}, [
@@ -169,8 +175,11 @@
       var head = el("tr", {}, [el("th", {text: "Method (K = " + KLABEL[state.k] + ")"})].concat(ENVS.map(function (e) { return el("th", {text: e}); })));
       t.appendChild(el("thead", {}, [head]));
       var tb = el("tbody");
+      var lastG = null;
       rows.forEach(function (r) {
-        tb.appendChild(el("tr", {class: r[1] === "ours" ? "is-ours" : ""}, [el("td", {text: r[0]})].concat(r[2].map(function (v) { return el("td", {text: v + "%"}); }))));
+        var g = groupOf(r[1]);
+        if (g !== lastG) { tb.appendChild(el("tr", {class: "group-row"}, [el("td", {colspan: String(ENVS.length + 1), text: GROUPS[g]})])); lastG = g; }
+        tb.appendChild(el("tr", {class: r[1] === "ours" ? "is-ours" : r[1] === "closed" ? "is-closed" : ""}, [el("td", {text: r[0]})].concat(r[2].map(function (v) { return el("td", {text: v + "%"}); }))));
       });
       t.appendChild(tb); table.appendChild(t);
     }
@@ -178,9 +187,10 @@
   }
   function legend() {
     return el("div", {class: "chart-legend"}, [
-      el("span", {}, [el("i", {class: "sw sw-ours"}), document.createTextNode("Agima")]),
-      el("span", {}, [el("i", {class: "sw sw-noimg"}), document.createTextNode("Agima (No Imagine)")]),
-      el("span", {}, [el("i", {class: "sw sw-other"}), document.createTextNode("Other baselines")])
+      el("span", {}, [el("i", {class: "sw sw-ours"}), document.createTextNode("Agima (fine-tuned)")]),
+      el("span", {}, [el("i", {class: "sw sw-noimg"}), document.createTextNode("Agima No Imagine (fine-tuned)")]),
+      el("span", {}, [el("i", {class: "sw sw-other"}), document.createTextNode("Qwen2.5-VL / Qwen3-VL (fine-tuned)")]),
+      el("span", {}, [el("i", {class: "sw sw-closed"}), document.createTextNode("Gemini / GPT (not fine-tuned)")])
     ]);
   }
 
@@ -244,7 +254,10 @@
       t.appendChild(el("thead", {}, [el("tr", {}, [el("th", {text: "Method"})].concat(d.cols.map(function (c) { return el("th", {text: c}); })))]));
       var tb = el("tbody");
       var lin = d.rows.filter(function (r) { return r[1] === "ours-lin"; })[0];
+      var lastG = null;
       d.rows.forEach(function (r) {
+        var g = groupOf(r[1]);
+        if (g !== lastG) { tb.appendChild(el("tr", {class: "group-row"}, [el("td", {colspan: String(d.cols.length + 1), text: GROUPS[g]})])); lastG = g; }
         tb.appendChild(el("tr", {class: r[1] === "ours" ? "is-ours" : r[1] === "ours-lin" ? "is-lin" : r[1] === "closed" ? "is-closed" : ""},
           [el("td", {text: r[0]})].concat(r[2].map(function (v, ci) {
             var delta = r[1] === "ours" ? v - lin[2][ci] : null;
