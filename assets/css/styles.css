@@ -158,7 +158,7 @@ code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospac
   line-height: 1.06;
   letter-spacing: 0;
 }
-.section-heading > p:last-child { max-width: 700px; margin: 12px 0 0; color: var(--muted); }
+.section-heading > p:last-child { max-width: none; margin: 12px 0 0; color: var(--muted); }
 .heading-rule { width: 80px; height: 4px; margin: 13px 0 24px; background: var(--verify); }
 .content-grid {
   display: grid;
@@ -590,7 +590,7 @@ img { height: auto; }
 /* Action-chunk (K) explainer */
 .k-explainer { margin-top: 64px; }
 .k-explainer h3, .trap-results h3, .rl-intro h3 { margin: 0 0 8px; font-family: Georgia, "Times New Roman", serif; font-size: 27px; font-weight: 500; line-height: 1.12; }
-.k-explainer > p { max-width: 700px; color: var(--muted); }
+.k-explainer > p { max-width: none; color: var(--muted); }
 .k-frame { display: grid; gap: 6px; padding: 10px; border: 1px solid var(--line); background: white; }
 
 /* Planning traps: one card per evaluation set */
@@ -691,3 +691,9 @@ img { height: auto; }
   text-align: center;
   text-transform: uppercase;
 }
+
+/* Author list */
+.authors .author { white-space: nowrap; }
+.authors .author + .author { margin-left: 18px; }
+.authors .affil { white-space: nowrap; }
+.authors .affil + .affil { margin-left: 16px; }
