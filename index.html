@@ -6,8 +6,8 @@
   <meta name="description" content="Agima teaches one omni model to imagine the visual consequences of its own actions and to plan with them before acting.">
   <meta property="og:title" content="Learning to Plan with Agentic Imagination">
   <meta property="og:description" content="Agima imagines where its actions lead, then plans from those imagined frames.">
-  <meta property="og:image" content="assets/video/agima_teaser_poster.webp">
-  <meta property="og:video" content="assets/video/agima_teaser.mp4">
+  <meta property="og:image" content="assets/video/agima_teaser_v2_poster.webp">
+  <meta property="og:video" content="assets/video/agima_teaser_v2.mp4">
   <title>Learning to Plan with Agentic Imagination | Agima</title>
   <link rel="stylesheet" href="assets/css/styles.css">
   <script defer src="assets/js/main.js"></script>
@@ -45,13 +45,7 @@
   <main>
     <section class="section demo-lead" aria-label="Teaser video">
       <div class="narrow">
-        <video class="pipeline-video" controls autoplay loop muted playsinline preload="metadata" poster="assets/video/agima_teaser_poster.webp" width="1280" height="720" aria-label="Agima teaser: the problem, three ways Agima imagines, easy-to-hard generalization and results, reinforcement learning, and planning traps">
-          <source src="assets/video/agima_teaser.mp4" type="video/mp4">
-          Your browser does not support embedded video.
-        </video>
-        <!-- Draft: new short teaser, shown below the current one for comparison. -->
-        <p class="teaser-compare-label">New teaser (draft, for comparison)</p>
-        <video class="pipeline-video" controls loop muted playsinline preload="metadata" poster="assets/video/agima_teaser_v2_poster.webp" width="1280" height="720" aria-label="Agima teaser, short version: a deadlock, imagining before acting, three imagination formats, easy-to-hard generalization, results, reinforcement learning, and planning traps">
+        <video class="pipeline-video" controls autoplay loop muted playsinline preload="metadata" poster="assets/video/agima_teaser_v2_poster.webp" width="1280" height="720" aria-label="Agima teaser: a deadlock, imagining before acting, three imagination formats, easy-to-hard generalization, results, reinforcement learning, and planning traps">
           <source src="assets/video/agima_teaser_v2.mp4" type="video/mp4">
           Your browser does not support embedded video.
         </video>
@@ -329,6 +323,7 @@
         </div>
         <div class="analysis-row">
           <div class="analysis-copy">
+            <span class="analysis-index">A</span>
             <h3>RL improves held-out planning</h3>
             <p>Every imagination-based model improves, including on four-box puzzles never seen during RL. The action-only model raises its training reward but stays near zero on the test sets.</p>
           </div>
@@ -336,6 +331,7 @@
         </div>
         <div class="analysis-row">
           <div class="analysis-copy">
+            <span class="analysis-index">B</span>
             <h3>A second plan only when needed</h3>
             <p>After RL, Agima drafts a second plan in 26–31% of episodes instead of 79%, and almost only when the first one really fails.</p>
           </div>
@@ -343,6 +339,7 @@
         </div>
         <div class="analysis-row">
           <div class="analysis-copy">
+            <span class="analysis-index">C</span>
             <h3>Branching moves to critical decisions</h3>
             <p>Agima opens more branches per plan and places more of them where a single push would make the puzzle unsolvable.</p>
           </div>
