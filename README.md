@@ -1,6 +1,6 @@
 # Agima project website
 
-Static project page for *Learning to Plan with Agentic Imagination* (Agima).
+Static project page for *Planning with Agentic Imagination* (Agima).
 Serve it with GitHub Pages from the repository root (`main` branch, `/`).
 
 - `index.html`: the page
