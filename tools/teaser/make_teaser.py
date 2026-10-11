@@ -1,9 +1,11 @@
-"""Render the Agima teaser video (1280x720, 24 fps) straight into ffmpeg.
+"""First cut of the Agima teaser (1280x720, 24 fps). Kept because make_teaser_v3.py builds on it:
+it loads the shared inputs (site assets, inputs/, fonts/) and defines the Sokoban solver/renderer
+and drawing helpers.
 
-usage: make_teaser.py [out.mp4] [stills]
+usage (renders this older cut, not the one on the site):
+  python make_teaser.py [out.mp4]          # default: ./agima_teaser_v1.mp4
+  python make_teaser.py out.mp4 stills DIR # preview stills to DIR
 
-Inputs are the website's own assets (figures, trap images, GIFs), the exported training/eval
-examples under unified_world_model/artifacts, and fonts/Gelasio.ttf (Google Fonts, OFL).
 The Sokoban trap trajectories are solved and re-rendered from the trap images' own tiles.
 """
 import glob
@@ -22,7 +24,7 @@ ART = os.path.join(HERE, "inputs")   # copies of the exported examples (original
 EP34 = f"{ART}/pacman_near_far_food_vanilla_vs_forward_ep034_branch_start_20260924"
 TRAIN_EX = f"{ART}/sokoban_train_data_forward_branch_examples_20260925"
 IDX19 = f"{ART}/sokoban_branching_checkpoint_examples_20260926/candidate_02_idx19/ground_truth/all_frames"
-OUT = sys.argv[1] if len(sys.argv) > 1 else f"{SITE}/video/agima_teaser.mp4"
+OUT = sys.argv[1] if len(sys.argv) > 1 else "agima_teaser_v1.mp4"
 
 W, H, FPS = 1280, 720, 24
 WHITE, INK, MUTED = (255, 255, 255), (23, 23, 23), (105, 105, 105)
@@ -996,7 +998,7 @@ def main():
 
 if __name__ == "__main__":
     if len(sys.argv) > 2 and sys.argv[2] == "stills":
-        outdir = sys.argv[3] if len(sys.argv) > 3 else HERE
+        outdir = sys.argv[3] if len(sys.argv) > 3 else "."
         for f in glob.glob(f"{outdir}/still_*.png"):
             os.remove(f)
         for k, (fn, dur) in enumerate(SCENES):

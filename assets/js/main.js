@@ -215,30 +215,7 @@
     root.appendChild(grid);
   }
 
-  /* ---------- 3. rollout explorer: one GIF per environment and K ---------- */
-  var EXPLORER_ENVS = [["maze2d", "Maze2D"], ["sokoban", "Sokoban"], ["pacman", "Pacman"], ["pusht", "PushT"]];
-  function renderExplorer(root) {
-    var state = {env: "sokoban", k: "5"};
-    var controls = el("div", {class: "chart-controls explorer-controls"});
-    root.appendChild(controls);
-    segmented(controls, "Environment", EXPLORER_ENVS, state.env, function (v) { state.env = v; draw(); });
-    segmented(controls, "Explorer K", [["1", "K = 1"], ["3", "K = 3"], ["5", "K = 5"], ["10", "K = 10"], ["inf", "K = ∞"]], state.k, function (v) { state.k = v; draw(); });
-    var caption = el("p", {class: "chart-note"});
-    var img = el("img", {class: "explorer-gif", width: "530", height: "332", alt: ""});
-    root.appendChild(caption); root.appendChild(el("div", {class: "explorer-frame"}, [img]));
-    function draw() {
-      var label = EXPLORER_ENVS.filter(function (e) { return e[0] === state.env; })[0][1];
-      caption.textContent = label + ", K = " + KLABEL[state.k] + ". " + (state.k === "1"
-        ? "A real frame after every action; nothing is imagined."
-        : state.k === "inf" ? "One real frame at the start; every later frame is imagined."
-        : "Imagined frames, then a real frame every " + state.k + " actions.");
-      img.src = FIG.replace("images/", "gifs/") + "rollout/" + state.env + "_k" + state.k + ".gif";
-      img.alt = label + " episode at K = " + KLABEL[state.k] + ": imagined frames next to the ground truth.";
-    }
-    draw();
-  }
-
-  /* ---------- 4. reasoning tables ---------- */
+  /* ---------- 3. reasoning tables ---------- */
   function renderReasoning(root) {
     var state = {task: "sokoban"};
     var controls = el("div", {class: "chart-controls"});
@@ -382,18 +359,7 @@
     } else { start(); }
   }
 
-  /* ---------- tabs, copy, back-to-top, contents nav ---------- */
-  function initTabs() {
-    document.querySelectorAll("[data-tabs]").forEach(function (box) {
-      var btns = box.querySelectorAll("[data-tab]");
-      btns.forEach(function (b) {
-        b.addEventListener("click", function () {
-          btns.forEach(function (x) { x.setAttribute("aria-selected", String(x === b)); });
-          box.querySelectorAll("[data-panel]").forEach(function (p) { p.hidden = p.getAttribute("data-panel") !== b.getAttribute("data-tab"); });
-        });
-      });
-    });
-  }
+  /* ---------- BibTeX copy button ---------- */
   function initCopy() {
     document.querySelectorAll("[data-copy]").forEach(function (b) {
       b.addEventListener("click", function () {
@@ -405,32 +371,6 @@
     });
     function select(n) { var r = document.createRange(); r.selectNodeContents(n); var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
   }
-  function initContents() {
-    var nav = document.querySelector(".contents");
-    var startEl = document.querySelector(".prose .lead");
-    if (!nav || !startEl) return;
-    var items = Array.prototype.slice.call(nav.querySelectorAll('a[href^="#"]')).map(function (a) {
-      return {link: a, target: document.querySelector(a.getAttribute("href"))};
-    }).filter(function (x) { return x.target; });
-    var frame;
-    function update() {
-      frame = null;
-      var marker = window.scrollY + innerHeight * 0.4;
-      var startScroll = startEl.getBoundingClientRect().top + window.scrollY - innerHeight * 0.55;
-      var endScroll = Math.max(startScroll + 1, document.documentElement.scrollHeight - innerHeight);
-      var progress = Math.min(1, Math.max(0, (window.scrollY - startScroll) / (endScroll - startScroll)));
-      nav.classList.toggle("is-visible", window.scrollY >= startScroll);
-      nav.style.setProperty("--scroll-progress", progress);
-      var active = items[0];
-      items.forEach(function (it) { if (it.target.getBoundingClientRect().top + window.scrollY <= marker) active = it; });
-      items.forEach(function (it) { if (it === active) it.link.setAttribute("aria-current", "location"); else it.link.removeAttribute("aria-current"); });
-    }
-    function request() { if (!frame) frame = requestAnimationFrame(update); }
-    window.addEventListener("scroll", request, {passive: true});
-    window.addEventListener("resize", request);
-    update();
-  }
-
   /* ---------- Figure 1: step through linear rollout / branching / forward thinking ---------- */
   function initImagineAnimation() {
     var diagram = document.querySelector(".team-diagram");
@@ -470,11 +410,10 @@
     var m;
     if ((m = document.getElementById("k-results"))) renderKResults(m);
     if ((m = document.getElementById("ablation"))) renderAblation(m);
-    if ((m = document.getElementById("rollout-explorer"))) renderExplorer(m);
     if ((m = document.getElementById("reasoning-results"))) renderReasoning(m);
     if ((m = document.getElementById("k-chunks"))) renderKChunks(m);
     if ((m = document.getElementById("k-anim"))) renderKAnimation(m);
-    initTabs(); initCopy(); initContents(); initImagineAnimation();
+    initCopy(); initImagineAnimation();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })();

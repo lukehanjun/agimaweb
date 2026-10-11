@@ -1,15 +1,20 @@
-"""Agima teaser, v3: fewer explanations, more spectacle (1280x720, 30 fps, drawn at 2x).
+"""Render the Agima teaser (1280x720, 30 fps). Every frame is drawn at 2x and downsampled.
 
-usage: make_teaser_v3.py [out.mp4] [stills <dir>]
+usage:
+  python make_teaser_v3.py                    # writes ../../assets/video/agima_teaser_v3.mp4
+  python make_teaser_v3.py -o out.mp4         # writes somewhere else
+  python make_teaser_v3.py --stills DIR       # saves preview stills of every scene to DIR instead
 
 Scenes
-  wall      a wall of 381 frames Agima generated (from the site's rollout GIFs), revealed by a camera pull-back
-  tree      every push from one Sokoban board, as a spiral tree; unsolvable branches (BFS-proven) wither,
-            the solution lights up and straightens into a timeline
-  wipe      imagined vs real frames, compared with a sliding wipe, all four tasks
-  numbers   2-box training -> 4-box test, 40% vs 2%
-  rl        after RL: failed plans dissolve into particles, the third plan holds
-  pacman    glowing trajectory trails: linear rollout runs into the ghost, forward thinking clears the food
+  wall      a wall of the frames Agima imagined (from the site's rollout GIFs); the camera pulls back,
+            then the tiles swirl into one Sokoban board
+  omni      one omni model: board in, action out, then the imagined frame, which becomes the next input
+  search    camera-follow Sokoban rollout: forward thinking, counterfactual branching, forward thinking;
+            losing plans die, the kept one is acted on, then the camera pulls back over the whole path
+  rlpac     after RL, Pacman plans are drafted one at a time until one works (left), next to the
+            route-order trap clips and 54% vs 19% (right)
+  envs      each task's train episode flips to its test episode, with its result bars beneath
+  wipe      imagined vs real frames, compared with a sliding wipe
   end       title and authors
 """
 import glob
@@ -31,7 +36,7 @@ from make_teaser_v2 import (ACCENT, BG, BG2, BOARD, DEAD, ENV, EP34, FAINT, FIG5
                             RED, RL_ROWS, img, SITE, WHITE, W, Z, V, back_out, clamp, ease_io, ease_out, fade, gif_frames,
                             inter, mix, prog, sc_end)
 
-OUT = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] != "x" else f"{SITE}/video/agima_teaser_v3.mp4"
+OUT = f"{SITE}/video/agima_teaser_v3.mp4"
 FPS = 30
 
 
@@ -931,23 +936,33 @@ def frame(fn, t, dur, fin=True, fout=True):
     return Image.blend(bg, im, min(a_in, a_out))
 
 
-def main():
+def render_video(out):
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
-           "-c:v", "libx264", "-preset", "slow", "-crf", "20", "-pix_fmt", "yuv420p", "-movflags", "+faststart", OUT]
+           "-c:v", "libx264", "-preset", "slow", "-crf", "20", "-pix_fmt", "yuv420p", "-movflags", "+faststart", out]
     ff = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     n = 0
     for fn, dur, fi, fo in SCENES:
         for i in range(int(round(dur * FPS))):
             ff.stdin.write(frame(fn, i / FPS, dur, fi, fo).tobytes()); n += 1
     ff.stdin.close(); ff.wait()
-    print("frames", n, "seconds", round(n / FPS, 1), "->", OUT, os.path.getsize(OUT) // 1024, "KB")
+    print("frames", n, "seconds", round(n / FPS, 1), "->", out, os.path.getsize(out) // 1024, "KB")
+
+
+def render_stills(outdir):
+    os.makedirs(outdir, exist_ok=True)
+    for k, (fn, dur, fi, fo) in enumerate(SCENES):
+        for frac in (0.2, 0.45, 0.7, 0.95):
+            frame(fn, dur * frac, dur, fi, fo).save(f"{outdir}/{k:02d}_{fn.__name__}_{int(frac * 100)}.png")
+    print("stills ->", outdir)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 2 and sys.argv[2] == "stills":
-        outdir = sys.argv[3]
-        for k, (fn, dur, fi, fo) in enumerate(SCENES):
-            for frac in (0.2, 0.45, 0.7, 0.95):
-                frame(fn, dur * frac, dur, fi, fo).save(f"{outdir}/v3_{k:02d}_{int(frac * 100)}.png")
+    import argparse
+    ap = argparse.ArgumentParser(description="Render the Agima teaser video.")
+    ap.add_argument("-o", "--out", default=OUT, help="output .mp4 (default: the site's assets/video/agima_teaser_v3.mp4)")
+    ap.add_argument("--stills", metavar="DIR", help="save preview stills of every scene to DIR instead of rendering the video")
+    args = ap.parse_args()
+    if args.stills:
+        render_stills(args.stills)
     else:
-        main()
+        render_video(args.out)

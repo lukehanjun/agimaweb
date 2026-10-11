@@ -1,6 +1,9 @@
-"""Short motion-graphics teaser for Agima (1280x720, 30 fps), drawn at 2x and downsampled.
+"""Second cut of the Agima teaser (1280x720, 30 fps). Kept because make_teaser_v3.py builds on it
+(canvas, palette, easing and the sliding Sokoban board).
 
-usage: make_teaser_v2.py [out.mp4] [stills <dir>]
+usage (renders this older cut, not the one on the site):
+  python make_teaser_v2.py [out.mp4]          # default: ./agima_teaser_v2.mp4
+  python make_teaser_v2.py out.mp4 stills DIR # preview stills to DIR
 
 Reuses the data and drawing helpers of make_teaser.py (same inputs). Sokoban boards are re-rendered
 with sprites at fractional positions so the agent and boxes slide between cells.
@@ -19,7 +22,7 @@ sys.argv = _argv
 
 from make_teaser import (DEAD, EP34, FIG5, K5, SITE, SPR, Hi, gif_frames, img, inter, rounded_path)  # noqa: E402
 
-OUT = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] != "x" else f"{SITE}/video/agima_teaser_v2.mp4"
+OUT = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] != "x" else "agima_teaser_v2.mp4"
 W, H, FPS, Z = 1280, 720, 30, 2
 BG = (247, 245, 240)
 INK, MUTED, FAINT = (22, 22, 24), (118, 116, 110), (196, 193, 185)

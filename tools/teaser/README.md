@@ -1,13 +1,17 @@
 # Teaser video
 
 Renders `assets/video/agima_teaser_v3.mp4`, the 46-second teaser on the project page.
+After re-rendering, refresh the poster frame too:
+`ffmpeg -y -ss 3.9 -i assets/video/agima_teaser_v3.mp4 -frames:v 1 -c:v libwebp -quality 85 assets/video/agima_teaser_v3_poster.webp`.
 
 ```bash
 pip install -r tools/teaser/requirements.txt   # plus ffmpeg on PATH
-python tools/teaser/make_teaser_v3.py                 # writes assets/video/agima_teaser_v3.mp4
-python tools/teaser/make_teaser_v3.py out.mp4         # or to another file
-python tools/teaser/make_teaser_v3.py x stills DIR    # preview stills of every scene into DIR
+python tools/teaser/make_teaser_v3.py              # writes assets/video/agima_teaser_v3.mp4
+python tools/teaser/make_teaser_v3.py -o out.mp4   # or to another file
+python tools/teaser/make_teaser_v3.py --stills DIR # preview stills of every scene into DIR
 ```
+
+The script works from any directory; paths are resolved relative to the script.
 
 A full render takes about 2–3 minutes. Every frame is drawn with Pillow at 2560×1440 and
 downsampled to 1280×720, then piped to ffmpeg (H.264, 30 fps).
@@ -23,6 +27,7 @@ downsampled to 1280×720, then piped to ffmpeg (H.264, 30 fps).
   - imagined vs real wipe
   - end card
 - `make_teaser_v2.py`, `make_teaser.py`: earlier cuts. v3 imports their data loading and drawing helpers, so all three are needed.
+  Run directly, they render their own (older) cut into the current directory.
 - `fonts/`: Gelasio and Inter (SIL Open Font License, from google/fonts).
 - `inputs/`: the exported example frames the teaser reads. These are copies of
   `unified_world_model/artifacts/…`:
